@@ -24,7 +24,7 @@ export default () => {
       console.log(`Downloading ${url}...`);
       const { output } = argv;
       loadPage(url, argv.output)
-        .then((fileName) => console.log(`Page loaded to ${output}`))
+        .then((fileName) => console.log(`Page loaded to ${[output, fileName].join('/')}`))
         .catch((err) => {
           console.error(err.message);
           process.exit(1);
