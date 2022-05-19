@@ -54,6 +54,11 @@ describe('page-loader', () => {
     const resultCssPath = path.join(tempDirectory, resourcesDirectory, 'hexlet-io-css-index.css');
     const resultImgPath = path.join(tempDirectory, resourcesDirectory, 'hexlet-io-images-img.png');
 
+    await expect(fs.access(path.join(resultHtmlPath))).resolves.not.toThrow();
+    await expect(fs.access(path.join(resultJsPath))).resolves.not.toThrow();
+    await expect(fs.access(path.join(resultCssPath))).resolves.not.toThrow();
+    await expect(fs.access(path.join(resultImgPath))).resolves.not.toThrow();
+
     const loadedHtml = await fs.readFile(resultHtmlPath, 'utf-8');
     const loadedJs = await fs.readFile(resultJsPath, 'utf-8');
     const loadedCss = await fs.readFile(resultCssPath, 'utf-8');
@@ -76,8 +81,7 @@ describe('page-loader', () => {
 
   test('should throw exception about unknown file system', async () => {
     const rootDirPath = '/sys';
-    await expect(loadPage(requestUrl, rootDirPath))
-      .rejects.toThrow();
+    await expect(loadPage(requestUrl, rootDirPath)).rejects.toThrow();
 
     nock(/hexlet/)
       .get(pathname)
