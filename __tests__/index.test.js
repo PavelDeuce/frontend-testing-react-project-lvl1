@@ -1,13 +1,11 @@
 import nock from 'nock';
 import os from 'os';
 import path from 'path';
-import * as url from 'url';
 import { promises as fs } from 'fs';
 
 import loadPage from '../src/index.js';
 import { createLinkPath, linkTypesMapping } from '../src/utils.js';
 
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const getFixturePath = (...paths) => path.join(__dirname, '..', '__fixtures__', ...paths);
 let tempDirectory = '';
 const hostname = 'hexlet.io';
