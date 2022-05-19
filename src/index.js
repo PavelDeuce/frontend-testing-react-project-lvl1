@@ -2,7 +2,6 @@ import path from 'path';
 import axios from 'axios';
 import debug from 'debug';
 import { promises as fs } from 'fs';
-import Listr from 'listr';
 
 import changeLinksToRelative from './parser.js';
 import { createLinkPath, linkTypesMapping } from './utils.js';
@@ -35,14 +34,12 @@ export default (requestUrl, outputPath = process.cwd()) => {
     return fs
       .mkdir(resourcesDirectory)
       .then(() => {
-        const listrOptions = { exitOnError: false, concurrent: true };
-        const listrData = links.map((link) => ({
-          title: `Loading ${link}`,
-          task: () => loadResource(link),
-        }));
-        const tasks = new Listr(listrData, listrOptions);
-        return tasks.run();
+        return links.map((link) => {
+          log(`Loading ${link}`);
+          return loadResource(link);
+        });
       })
+      .then((links) => Promise.all(links))
       .catch((error) => {
         log(`Folder creating ${resourcesDirectory} failed with message: ${error.message}`);
         throw error;
@@ -56,7 +53,7 @@ export default (requestUrl, outputPath = process.cwd()) => {
     return fs
       .writeFile(htmlPath, updatedHtml)
       .then(() => loadAllResources(links))
-      .then(() => outputPath)
+      .then(() => ({ filepath: outputPath }))
       .catch((error) => {
         log(error.message);
         throw error;
