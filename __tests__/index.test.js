@@ -75,6 +75,10 @@ describe('page-loader', () => {
   });
 
   test('should throw exception about unknown file system', async () => {
+    const rootDirPath = '/sys';
+    await expect(loadPage(requestUrl, rootDirPath))
+      .rejects.toThrow();
+
     nock(/hexlet/)
       .get(pathname)
       .reply(200, '');
