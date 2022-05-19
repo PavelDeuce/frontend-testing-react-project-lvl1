@@ -10,6 +10,7 @@ const getFixturePath = (filepath) => path.join('__fixtures__', filepath);
 let tempDirectory = '';
 const hostname = 'hexlet.io';
 const pathname = '/courses';
+const pageFilename = 'site-com-blog-about.html';
 const requestUrl = `https://${path.join(hostname, pathname)}`;
 
 nock.disableNetConnect();
@@ -64,19 +65,32 @@ describe('page-loader', () => {
     expect(loadedImg).toBe(responseImg);
   });
 
-  test('should threw 404', async () => {
+  test.each([404, 500])('load page: status code %s', async (code) => {
     nock(/hexlet/)
       .get('/profile')
-      .reply(404);
+      .reply(code, '');
     await expect(
       loadPage(`https://${path.join(hostname, '/profile')}`, tempDirectory),
-    ).rejects.toThrow('Request failed with status code 404');
+    ).rejects.toThrow(new RegExp(code));
   });
 
-  test('should threw exception about unknown directory', async () => {
+  test('should throw exception about unknown file system', async () => {
     nock(/hexlet/)
       .get(pathname)
       .reply(200, '');
-    await expect(loadPage(requestUrl, `${path.join(tempDirectory, '/unknown')}`)).rejects.toThrow(/ENOENT/);
+    await expect(loadPage(requestUrl, `${path.join(tempDirectory, '/unknown')}`)).rejects.toThrow(
+      /ENOENT/,
+    );
+  });
+
+  test('load page: no response', async () => {
+    await expect(fs.access(path.join(tempDirectory, pageFilename))).rejects.toThrow(/ENOENT/);
+
+    const invalidBaseUrl = 'https://hexkel.com';
+    const expectedError = `getaddrinfo ENOTFOUND ${invalidBaseUrl}`;
+    nock(invalidBaseUrl).persist().get('/').replyWithError(expectedError);
+
+    await expect(loadPage(invalidBaseUrl, tempDirectory)).rejects.toThrow(expectedError);
+    await expect(fs.access(path.join(tempDirectory, pageFilename))).rejects.toThrow(/ENOENT/);
   });
 });
