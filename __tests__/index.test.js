@@ -77,6 +77,6 @@ describe('page-loader', () => {
     nock(/hexlet/)
       .get(pathname)
       .reply(200, '');
-    await expect(loadPage(requestUrl, `${path.join(tempDirectory, '/unknown')}`)).rejects.toThrow();
+    await expect(loadPage(requestUrl, `${path.join(tempDirectory, '/unknown')}`)).rejects.toThrow(/ENOENT/);
   });
 });
