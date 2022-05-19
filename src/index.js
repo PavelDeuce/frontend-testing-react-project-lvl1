@@ -53,7 +53,7 @@ export default (requestUrl, outputPath = process.cwd()) => {
     return fs
       .writeFile(htmlPath, updatedHtml)
       .then(() => loadAllResources(links))
-      .then(() => ({ filepath: outputPath }))
+      .then(() => ({ filepath: htmlPath }))
       .catch((error) => {
         log(error.message);
         throw error;
