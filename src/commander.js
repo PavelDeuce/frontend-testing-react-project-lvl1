@@ -22,9 +22,8 @@ export default () => {
     .option(outputOption, 'output directory', process.cwd())
     .action((url, argv) => {
       console.log(`Downloading ${url}...`);
-      const { output } = argv;
       loadPage(url, argv.output)
-        .then((fileName) => console.log(`Page loaded to ${[output, fileName].join('/')}`))
+        .then(({ filepath }) => console.log(`Page loaded to ${filepath}`))
         .catch((err) => {
           console.error(err.message);
           process.exit(1);
