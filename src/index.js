@@ -33,13 +33,12 @@ export default (requestUrl, outputPath = process.cwd()) => {
     log('Start resources loading...');
     return fs
       .mkdir(resourcesDirectory)
-      .then(() => {
-        return links.map((link) => {
+      .then(() =>
+        links.map((link) => {
           log(`Loading ${link}`);
           return loadResource(link);
-        });
-      })
-      .then((links) => Promise.all(links))
+        }))
+      .then((mappedLinks) => Promise.all(mappedLinks))
       .catch((error) => {
         log(`Folder creating ${resourcesDirectory} failed with message: ${error.message}`);
         throw error;

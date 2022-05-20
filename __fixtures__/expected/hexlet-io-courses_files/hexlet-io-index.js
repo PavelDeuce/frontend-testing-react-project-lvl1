@@ -1,5 +1,5 @@
 const findAllImages = () => {
-  const images = document.querySelectorAll('img');
+  const images = [];
   console.log(images);
 };
 
