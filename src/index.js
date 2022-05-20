@@ -34,9 +34,9 @@ export default (requestUrl, outputPath = process.cwd()) => {
     return fs
       .mkdir(resourcesDirectory)
       .then(() => links.map((link) => {
-          log(`Loading ${link}`);
-          return loadResource(link);
-        }))
+        log(`Loading ${link}`);
+        return loadResource(link);
+      }))
       .then((mappedLinks) => Promise.all(mappedLinks))
       .catch((error) => {
         log(`Folder creating ${resourcesDirectory} failed with message: ${error.message}`);
