@@ -4,101 +4,128 @@ import path from 'path';
 import { promises as fs } from 'fs';
 
 import loadPage from '../src/index.js';
-import { createLinkPath, linkTypesMapping } from '../src/utils.js';
 
-const getFixturePath = (...paths) => path.join(__dirname, '..', '__fixtures__', ...paths);
-let tempDirectory = '';
-const hostname = 'hexlet.io';
-const pathname = '/courses';
-const pageFilename = 'site-com-blog-about.html';
-const requestUrl = `https://${path.join(hostname, pathname)}`;
+const buildFixturesPath = (...paths) => path.join(__dirname, '..', '__fixtures__', ...paths);
+const readFile = (dirpath, filename) => fs.readFile(path.join(dirpath, filename), 'utf-8');
+
+const pageDirname = 'hexlet-io-courses_files';
+const pageFilename = 'hexlet-io-courses.html';
+const baseUrl = 'https://hexlet.io';
+const pagePath = '/courses';
+const pageUrl = new URL(pagePath, baseUrl);
+
+let expectedPageContent = '';
+let resources = [
+  {
+    format: 'css',
+    urlPath: '/index.css',
+    filename: path.join(
+      pageDirname,
+      'hexlet-io-index.css',
+    ),
+  },
+  {
+    format: 'js',
+    urlPath: '/index.js',
+    filename: path.join(
+      pageDirname,
+      'hexlet-io-index.js',
+    ),
+  },
+  {
+    format: 'png',
+    urlPath: '/img.png',
+    filename: path.join(
+      pageDirname,
+      'hexlet-io-img.png',
+    ),
+  },
+];
+
+const formats = resources.map(({ format }) => format);
+const scope = nock(baseUrl).persist();
 
 nock.disableNetConnect();
 
-describe('page-loader', () => {
+beforeAll(async () => {
+  const sourcePageContent = await readFile(buildFixturesPath('.'), pageFilename);
+  const promises = resources.map((info) => readFile(buildFixturesPath('expected'), info.filename)
+    .then((data) => ({ ...info, data })));
+
+  expectedPageContent = await readFile(buildFixturesPath('expected'), pageFilename);
+  resources = await Promise.all(promises);
+
+  scope.get(pagePath).reply(200, sourcePageContent);
+  resources.forEach(({ urlPath, data }) => scope.get(urlPath).reply(200, data));
+});
+
+describe('positive cases', () => {
+  let tmpDirPath = '';
+  beforeAll(async () => {
+    tmpDirPath = await fs.mkdtemp(path.join(os.tmpdir(), 'page-loader-'));
+    await loadPage(pageUrl.toString(), tmpDirPath);
+  });
+
+  test('check HTML-page', async () => {
+    await expect(fs.access(path.join(tmpDirPath, pageFilename)))
+      .resolves.not.toThrow();
+
+    const actualContent = await readFile(tmpDirPath, pageFilename);
+    expect(actualContent).toBe(expectedPageContent.trim());
+  });
+
+  test.each(formats)('check .%s-resource', async (format) => {
+    const { filename, data } = resources.find((content) => content.format === format);
+
+    await expect(fs.access(path.join(tmpDirPath, pageFilename)))
+      .resolves.not.toThrow();
+
+    const actualContent = await readFile(tmpDirPath, filename);
+    expect(actualContent).toBe(data);
+  });
+});
+
+describe('negative cases', () => {
+  let tmpDirPath = '';
   beforeEach(async () => {
-    tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'page-loader-'));
-    nock.cleanAll();
-  });
-
-  afterAll(async () => {
-    await fs.rmdir(tempDirectory, { recursive: true });
-    nock.enableNetConnect();
-  });
-
-  test('should load page with resources', async () => {
-    const expectedHTML = await fs.readFile(getFixturePath('updatedTest.html'), 'utf-8');
-    const responsedHtml = await fs.readFile(getFixturePath('test.html'), 'utf-8');
-    const responseJs = await fs.readFile(getFixturePath('js/index.js'), 'utf-8');
-    const responseCss = await fs.readFile(getFixturePath('css/index.css'), 'utf-8');
-    const responseImg = await fs.readFile(getFixturePath('images/img.png'), 'utf-8');
-
-    nock(/hexlet/)
-      .get(pathname)
-      .reply(200, responsedHtml)
-      .get('/js/index.js')
-      .reply(200, responseJs)
-      .get('/css/index.css')
-      .reply(200, responseCss)
-      .get('/images/img.png')
-      .reply(200, responseImg);
-
-    await loadPage(requestUrl, tempDirectory);
-
-    const resourcesDirectory = createLinkPath(requestUrl, linkTypesMapping.directory);
-    const resultHtmlPath = path.join(
-      tempDirectory,
-      createLinkPath(requestUrl, linkTypesMapping.html),
-    );
-    const resultJsPath = path.join(tempDirectory, resourcesDirectory, 'hexlet-io-js-index.js');
-    const resultCssPath = path.join(tempDirectory, resourcesDirectory, 'hexlet-io-css-index.css');
-    const resultImgPath = path.join(tempDirectory, resourcesDirectory, 'hexlet-io-images-img.png');
-
-    await expect(fs.access(path.join(resultHtmlPath))).resolves.not.toThrow();
-    await expect(fs.access(path.join(resultJsPath))).resolves.not.toThrow();
-    await expect(fs.access(path.join(resultCssPath))).resolves.not.toThrow();
-    await expect(fs.access(path.join(resultImgPath))).resolves.not.toThrow();
-
-    const loadedHtml = await fs.readFile(resultHtmlPath, 'utf-8');
-    const loadedJs = await fs.readFile(resultJsPath, 'utf-8');
-    const loadedCss = await fs.readFile(resultCssPath, 'utf-8');
-    const loadedImg = await fs.readFile(resultImgPath, 'utf-8');
-
-    expect(loadedHtml.trim()).toEqual(expectedHTML.trim());
-    expect(loadedJs).toBe(responseJs);
-    expect(loadedCss).toBe(responseCss);
-    expect(loadedImg).toBe(responseImg);
-  });
-
-  test.each([404, 500])('load page: status code %s', async (code) => {
-    nock(/hexlet/)
-      .get('/profile')
-      .reply(code, '');
-    await expect(
-      loadPage(`https://${path.join(hostname, '/profile')}`, tempDirectory),
-    ).rejects.toThrow(new RegExp(code));
-  });
-
-  test('should throw exception about unknown file system', async () => {
-    const rootDirPath = '/sys';
-    await expect(loadPage(requestUrl, rootDirPath)).rejects.toThrow();
-
-    nock(/hexlet/)
-      .get(pathname)
-      .reply(200, '');
-    await expect(loadPage(requestUrl, `${path.join(tempDirectory, '/unknown')}`)).rejects.toThrow(
-      /ENOENT/,
-    );
+    tmpDirPath = await fs.mkdtemp(path.join(os.tmpdir(), 'page-loader-'));
   });
 
   test('load page: no response', async () => {
-    await expect(fs.access(path.join(tempDirectory, pageFilename))).rejects.toThrow(/ENOENT/);
+    await expect(fs.access(path.join(tmpDirPath, pageFilename)))
+      .rejects.toThrow(/ENOENT/);
 
     const invalidBaseUrl = 'https://hexkel.com';
     const expectedError = `getaddrinfo ENOTFOUND ${invalidBaseUrl}`;
     nock(invalidBaseUrl).persist().get('/').replyWithError(expectedError);
+    await expect(loadPage(invalidBaseUrl, tmpDirPath))
+      .rejects.toThrow(expectedError);
 
-    await expect(loadPage(invalidBaseUrl, tempDirectory)).rejects.toThrow(expectedError);
-    await expect(fs.access(path.join(tempDirectory, pageFilename))).rejects.toThrow(/ENOENT/);
+    await expect(fs.access(path.join(tmpDirPath, pageFilename)))
+      .rejects.toThrow(/ENOENT/);
   });
+
+  test.each([404, 500])('load page: status code %s', async (code) => {
+    scope.get(`/${code}`).reply(code, '');
+    const url = new URL(`/${code}`, baseUrl).toString();
+    await expect(loadPage(url, tmpDirPath))
+      .rejects.toThrow(new RegExp(code));
+  });
+
+  test('load page: file system errors', async () => {
+    const rootDirPath = '/not-exist';
+    await expect(loadPage(pageUrl.toString(), rootDirPath))
+      .rejects.toThrow();
+
+    const filepath = buildFixturesPath(pageFilename);
+    await expect(loadPage(pageUrl.toString(), filepath))
+      .rejects.toThrow(/ENOTDIR/);
+
+    await expect(loadPage(pageUrl.toString(), path.join(tmpDirPath, 'notExistsPath')))
+      .rejects.toThrow(/ENOENT/);
+  });
+});
+
+afterAll(async () => {
+  nock.enableNetConnect();
 });
