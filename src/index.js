@@ -33,8 +33,7 @@ export default (requestUrl, outputPath = process.cwd()) => {
     log('Start resources loading...');
     return fs
       .mkdir(resourcesDirectory)
-      .then(() =>
-        links.map((link) => {
+      .then(() => links.map((link) => {
           log(`Loading ${link}`);
           return loadResource(link);
         }))
