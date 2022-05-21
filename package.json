@@ -1,11 +1,12 @@
 {
   "name": "@hexlet/code",
   "version": "2.0.1",
-  "description": "Download the webpage by url",
+  "description": "Download the webpage by url [Testing]",
   "keywords": [
     "hexlet",
     "page-loader",
-    "nodejs"
+    "nodejs",
+    "testing"
   ],
   "main": "src/index.js",
   "bin": {
@@ -16,17 +17,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PavelDeuce/page-loader.git"
+    "url": "git+https://github.com/PavelDeuce/page-loader-testing.git"
   },
   "author": "Pavel Deryugin (PavelDeuce)",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/PavelDeuce/page-loader/issues"
+    "url": "https://github.com/PavelDeuce/page-loader-testing/issues"
   },
   "jest": {
     "testEnvironment": "node"
   },
-  "homepage": "https://github.com/PavelDeuce/page-loader#readme",
+  "homepage": "https://github.com/PavelDeuce/page-loader-testing#readme",
   "dependencies": {
     "@babel/cli": "^7.17.6",
     "@babel/core": "^7.17.9",
