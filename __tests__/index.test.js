@@ -2,6 +2,7 @@ import nock from 'nock';
 import os from 'os';
 import path from 'path';
 import { promises as fs } from 'fs';
+import prettifyHtml from 'prettify-html';
 
 import loadPage from '../src/index.js';
 
@@ -71,7 +72,7 @@ describe('positive cases', () => {
       .resolves.not.toThrow();
 
     const actualContent = await readFile(tmpDirPath, pageFilename);
-    expect(actualContent).toBe(expectedPageContent.trim());
+    expect(prettifyHtml(actualContent)).toBe(prettifyHtml(expectedPageContent));
   });
 
   test.each(formats)('check .%s-resource', async (format) => {
