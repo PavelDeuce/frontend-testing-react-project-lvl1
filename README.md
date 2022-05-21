@@ -1,8 +1,9 @@
 # page-loader-testing
 
 [![Actions Status](https://github.com/PavelDeuce/backend-project-lvl3/workflows/hexlet-check/badge.svg)](https://github.com/PavelDeuce/backend-project-lvl3/actions)
-[![Maintainability](https://api.codeclimate.com/v1/badges/f1cfb872319ec420cf31/maintainability)](https://codeclimate.com/github/PavelDeuce/backend-project-lvl3/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/f1cfb872319ec420cf31/test_coverage)](https://codeclimate.com/github/PavelDeuce/backend-project-lvl3/test_coverage)
+[![Node CI](https://github.com/PavelDeuce/page-loader-testing/actions/workflows/nodejs.yml/badge.svg)](https://github.com/PavelDeuce/page-loader-testing/actions/workflows/nodejs.yml)
+[![Maintainability](https://api.codeclimate.com/v1/badges/bba57768cb8f5f3d95f5/maintainability)](https://codeclimate.com/github/PavelDeuce/page-loader-testing/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/bba57768cb8f5f3d95f5/test_coverage)](https://codeclimate.com/github/PavelDeuce/page-loader-testing/test_coverage)
 
 ## Description
 
